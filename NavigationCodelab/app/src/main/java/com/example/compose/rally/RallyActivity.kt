@@ -26,11 +26,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.compose.rally.ui.accounts.AccountsScreen
+import com.example.compose.rally.ui.accounts.SingleAccountScreen
+import com.example.compose.rally.ui.bills.BillsScreen
 import com.example.compose.rally.ui.components.RallyTabRow
+import com.example.compose.rally.ui.overview.OverviewScreen
 import com.example.compose.rally.ui.theme.RallyTheme
 
 /**
@@ -53,7 +59,8 @@ fun RallyApp() {
         val currentBackState by navController.currentBackStackEntryAsState()
         val currentDestination = currentBackState?.destination
 
-        val currentScreen = rallyTabRowScreens.find { it.route == currentDestination?.route } ?: Overview
+        val currentScreen =
+            rallyTabRowScreens.find { it.route == currentDestination?.route } ?: Overview
         Scaffold(
             topBar = {
                 RallyTabRow(
@@ -68,14 +75,40 @@ fun RallyApp() {
                 startDestination = Overview.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
-                rallyTabRowScreens.forEach { screen ->
-                    composable(screen.route) {
-                        screen.screen()
-                    }
+                composable(route = Accounts.route) {
+                    AccountsScreen(
+                        onAccountClick = { accountType ->
+                            navController.navigateToSingleAccount(accountType)
+                        }
+                    )
+                }
+                composable(route = Bills.route) {
+                    BillsScreen()
+                }
+                composable(route = Overview.route) {
+                    OverviewScreen(
+                        onClickSeeAllAccounts = { navController.navigateSingleTopTo(Accounts.route) },
+                        onClickSeeAllBills = { navController.navigateSingleTopTo(Bills.route) },
+                        onAccountClick = { accountType ->
+                            navController.navigateToSingleAccount(accountType)
+                        }
+                    )
+                }
+                composable(
+                    route = SingleAccount.routeWithArgs,
+                    arguments = SingleAccount.arguments
+                ) {
+                    // Retrieve the passed argument from the route
+                    val accountType = it.arguments?.getString(SingleAccount.accountTypeArg)
+                    SingleAccountScreen(accountType)
                 }
             }
         }
     }
+}
+
+private fun NavHostController.navigateToSingleAccount(accountType: String) {
+    navigateSingleTopTo("${SingleAccount.route}/$accountType")
 }
 
 fun NavHostController.navigateSingleTopTo(route: String) {
