@@ -19,6 +19,7 @@ package com.example.compose.rally
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
@@ -70,55 +71,7 @@ fun RallyApp() {
                 )
             }
         ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = Overview.route,
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                composable(route = Accounts.route) {
-                    AccountsScreen(
-                        onAccountClick = { accountType ->
-                            navController.navigateToSingleAccount(accountType)
-                        }
-                    )
-                }
-                composable(route = Bills.route) {
-                    BillsScreen()
-                }
-                composable(route = Overview.route) {
-                    OverviewScreen(
-                        onClickSeeAllAccounts = { navController.navigateSingleTopTo(Accounts.route) },
-                        onClickSeeAllBills = { navController.navigateSingleTopTo(Bills.route) },
-                        onAccountClick = { accountType ->
-                            navController.navigateToSingleAccount(accountType)
-                        }
-                    )
-                }
-                composable(
-                    route = SingleAccount.routeWithArgs,
-                    arguments = SingleAccount.arguments
-                ) {
-                    // Retrieve the passed argument from the route
-                    val accountType = it.arguments?.getString(SingleAccount.accountTypeArg)
-                    SingleAccountScreen(accountType)
-                }
-            }
+            RallyNavHost(navController, Modifier.padding(innerPadding))
         }
-    }
-}
-
-private fun NavHostController.navigateToSingleAccount(accountType: String) {
-    navigateSingleTopTo("${SingleAccount.route}/$accountType")
-}
-
-fun NavHostController.navigateSingleTopTo(route: String) {
-    navigate(route) {
-        popUpTo(
-            this@navigateSingleTopTo.graph.findStartDestination().id
-        ) {
-            saveState = true
-        }
-        launchSingleTop = true
-        restoreState = true
     }
 }
